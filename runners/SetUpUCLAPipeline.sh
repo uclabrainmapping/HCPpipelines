@@ -1,8 +1,10 @@
 #!/bin/bash 
 
-echo "This script must be SOURCED to correctly setup the environment prior to running any of the other HCP scripts contained here"
+# "This script must be SOURCED to correctly setup the environment prior to running any of the other HCP scripts contained here"
 
 export HCP_APP_DIR=/nafs/apps/HCPPipelines/64
+
+export PATH="${HCP_APP_DIR}/../miniconda/bin:${PATH}"
 
 # set path to some minor utilities we make use of
 export PATH="${HCP_APP_DIR}/util:${PATH}"
@@ -10,7 +12,7 @@ export PATH="${HCP_APP_DIR}/util:${PATH}"
 # Set up FSL (if not already done so in the running environment)
 # Uncomment the following 2 lines (remove the leading #) and correct the FSLDIR setting for your setup
 export FSLDIR=${HCP_APP_DIR}/fsl/6.0.1-hcp
-source ${FSLDIR}/etc/fslconf/fsl.sh > /dev/null 2>&1
+. ${FSLDIR}/etc/fslconf/fsl.sh > /dev/null 2>&1
 
 # Let FreeSurfer know what version of FSL to use
 # FreeSurfer uses FSL_DIR instead of FSLDIR to determine the FSL version
@@ -19,7 +21,11 @@ export FSL_DIR="${FSLDIR}"
 # Set up FreeSurfer (if not already done so in the running environment)
 # Uncomment the following 2 lines (remove the leading #) and correct the FREESURFER_HOME setting for your setup
 export FREESURFER_HOME=${HCP_APP_DIR}/freesurfer/6.0.0-stable-pub
-source ${FREESURFER_HOME}/SetUpFreeSurfer.sh > /dev/null 2>&1
+. ${FREESURFER_HOME}/SetUpFreeSurfer.sh > /dev/null 2>&1
+
+# Set up EPD
+export EPD_PYTHON_HOME="${HCP_APP_DIR}/epd-7.3-2-rh5"
+export PATH="${EPD_PYTHON_HOME}/bin:${PATH}"
 
 # Set up specific environment variables for the HCP Pipeline
 export HCPPIPEDIR=/nafs/narr/jpierce/hcppipe
@@ -43,6 +49,9 @@ export HCPPIPEDIR_dMRI=${HCPPIPEDIR}/DiffusionPreprocessing/scripts
 export HCPPIPEDIR_dMRITract=${HCPPIPEDIR}/DiffusionTractography/scripts
 export HCPPIPEDIR_Global=${HCPPIPEDIR}/global/scripts
 export HCPPIPEDIR_tfMRIAnalysis=${HCPPIPEDIR}/TaskfMRIAnalysis/scripts
+
+export PYTHONPATH="${HCP_RUN_UTILS}/lib"
+export PATH="${HCPPIPEDIR}/FreeSurfer/custom:${PATH}"
 
 #try to reduce strangeness from locale and other environment settings
 export LC_ALL=C
