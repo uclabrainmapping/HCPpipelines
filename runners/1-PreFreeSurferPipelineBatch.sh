@@ -148,7 +148,7 @@ main()
   # This printing will be done using the command specified
   # in the PRINTCOM variable
   #PRINTCOM=""
-  PRINTCOM="echo"
+  #PRINTCOM="echo"
 
   #
   # Inputs:
@@ -354,25 +354,25 @@ main()
       T2wRES=$(jq -r '.SliceThickness' "${STUDY_DIR}/anat/sub-${SUBJID}_T2w.json")
 
       # Hires T1w MNI template
-      T1wTemplate="${HCPPIPEDIR_Templates}/MNI152_T1_${SUBJ_T1RES}mm.nii.gz"
+      T1wTemplate="${HCPPIPEDIR_Templates}/MNI152_T1_${T1wRES}mm.nii.gz"
 
       # Hires brain extracted MNI template
-      T1wTemplateBrain="${HCPPIPEDIR_Templates}/MNI152_T1_${SUBJ_T1RES}mm_brain.nii.gz"
+      T1wTemplateBrain="${HCPPIPEDIR_Templates}/MNI152_T1_${T1wRES}mm_brain.nii.gz"
 
       # Lowres T1w MNI template
       T1wTemplate2mm="${HCPPIPEDIR_Templates}/MNI152_T1_2mm.nii.gz"
 
       # Hires T2w MNI Template
-      T2wTemplate="${HCPPIPEDIR_Templates}/MNI152_T2_${SUBJ_T2RES}mm.nii.gz"
+      T2wTemplate="${HCPPIPEDIR_Templates}/MNI152_T2_${T2wRES}mm.nii.gz"
 
       # Hires T2w brain extracted MNI Template
-      T2wTemplateBrain="${HCPPIPEDIR_Templates}/MNI152_T2_${SUBJ_T2RES}m_brain.nii.gz"
+      T2wTemplateBrain="${HCPPIPEDIR_Templates}/MNI152_T2_${T2wRES}m_brain.nii.gz"
 
       # Lowres T2w MNI Template
       T2wTemplate2mm="${HCPPIPEDIR_Templates}/MNI152_T2_2mm.nii.gz"
 
       # Hires MNI brain mask template
-      TemplateMask="${HCPPIPEDIR_Templates}/MNI152_T1_${SUBJ_T1RES}mm_brain_mask.nii.gz"
+      TemplateMask="${HCPPIPEDIR_Templates}/MNI152_T1_${T1wRES}mm_brain_mask.nii.gz"
 
       # Lowres MNI brain mask template
       Template2mmMask="${HCPPIPEDIR_Templates}/MNI152_T1_2mm_brain_mask_dil.nii.gz"
@@ -419,7 +419,7 @@ main()
       # This doesn't pull from git because it's proprietary Siemens info.
       # Populate manually.
       GradientDistortionCoeffs="${HCPPIPEDIR_Config}/coeff_AS82.grad"
-      if [[ -n ${GradientDistortionCoeffs} ]]; then
+      if [[ -z "${GradientDistortionCoeffs}" ]]; then
         echo "Missing gradient distortion coefficients. Manually populate file
         or set GradientDistortionCoeffs=NONE to skip gradient distortion
         correction.
