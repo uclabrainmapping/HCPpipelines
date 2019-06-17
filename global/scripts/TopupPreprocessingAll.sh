@@ -336,7 +336,7 @@ if [ ! -z ${JacobianOutput} ] ; then
   ${FSLDIR}/bin/imcp ${WD}/Jacobian ${JacobianOutput}
 fi
 if [ ! -z ${DistortionCorrectionFieldOutput} ] ; then
-  ${FSLDIR}/bin/imcp ${WD}/TopupField ${DistortionCorrectionFieldOutput}
+  ${FSLDIR}/bin/imcp ${WD}/TopupField ${DistortionCorrectionFieldOutput}.nii.gz
 fi
 if [ ! -z ${DistortionCorrectionMagnitudeOutput} ] ; then
   ${FSLDIR}/bin/imcp ${WD}/Magnitude ${DistortionCorrectionMagnitudeOutput}
