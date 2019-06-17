@@ -29,7 +29,7 @@ export PATH="${EPD_PYTHON_HOME}/bin:${PATH}"
 
 # Set up specific environment variables for the HCP Pipeline
 export HCPPIPEDIR=/nafs/narr/jpierce/hcppipe
-export CARET7DIR=${HCP_APP_DIR}/workbench/1.3.2
+export CARET7DIR=${HCP_APP_DIR}/workbench/1.3.2/bin_rh_linux64
 export MSMBINDIR=${HCP_APP_DIR}/MSM_HOCR_v1
 export MSMCONFIGDIR=${HCPPIPEDIR}/MSMConfig
 export MATLAB_COMPILER_RUNTIME=${HCP_APP_DIR}/MCR/R2012b/v80

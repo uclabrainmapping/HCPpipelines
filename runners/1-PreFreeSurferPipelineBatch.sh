@@ -147,7 +147,7 @@ main()
   # print out the primary commands it otherwise would run.
   # This printing will be done using the command specified
   # in the PRINTCOM variable
-  #PRINTCOM=""
+  PRINTCOM=""
   #PRINTCOM="echo"
 
   #
@@ -203,8 +203,8 @@ main()
       # Input Images (assumes 1x T1w and 1x T2w)
 
       # Path to images
-      T1w="${STUDY_DIR}/anat/sub-${SUBJID}_T1w.nii.gz"
-      T2w="${STUDY_DIR}/anat/sub-${SUBJID}_T2w.nii.gz"
+      T1w="${STUDY_DIR}/sub-${SUBJID}/anat/sub-${SUBJID}_T1w.nii.gz"
+      T2w="${STUDY_DIR}/sub-${SUBJID}/anat/sub-${SUBJID}_T2w.nii.gz"
       
       # Readout Distortion Correction:
       #
@@ -270,8 +270,8 @@ main()
       # The following variables would be set to values other than "NONE" for
       # using Spin Echo Field Maps (i.e. when AvgrdcSTRING="TOPUP")
       
-      SE_APDIR=$(jq -r '.PhaseEncodingDirection' "${STUDY_DIR}/fmap/sub-${SUBJID}_SpinEchoFieldMap_dir-AP_epi.json")
-      SE_PADIR=$(jq -r '.PhaseEncodingDirection' "${STUDY_DIR}/fmap/sub-${SUBJID}_SpinEchoFieldMap_dir-PA_epi.json")
+      #SE_APDIR=$(jq -r '.PhaseEncodingDirection' "${STUDY_DIR}/sub-${SUBJID}/fmap/sub-${SUBJID}_dir-AP_run-01_epi.json")
+      #SE_PADIR=$(jq -r '.PhaseEncodingDirection' "${STUDY_DIR}/sub-${SUBJID}/fmap/sub-${SUBJID}_dir-PA_run-01_epi.json")
 
       # check to make sure that one (and only one) direction is negative
       #if [[ ! "${SE_APDIR}${SE_PADIR}" =~ ^([i-k]-[i-k]|[i-k][i-k]-)$ ]]; then 
@@ -288,7 +288,7 @@ main()
       # Example values for when using Spin Echo Field Maps from a Siemens machine:
       #   ${StudyFolder}/${Subject}/unprocessed/3T/T1w_MPR1/${Subject}_3T_SpinEchoFieldMap_LR.nii.z
       #   ${StudyFolder}/${Subject}/unprocessed/3T/T1w_MPR1/${Subject}_3T_SpinEchoFieldMap_AP.nii.gz
-      SpinEchoPhaseEncodeNegative="AP"
+      SpinEchoPhaseEncodeNegative="${STUDY_DIR}/sub-${SUBJID}/fmap/sub-${SUBJID}_dir-AP_run-01_epi.nii.gz"
 
       # The SpinEchoPhaseEncodePositive variable should be set to the
       # spin echo field map volume with positive phase encoding direction
@@ -299,7 +299,7 @@ main()
       # Example values for when using Spin Echo Field Maps from a Siemens machine:
       #   ${StudyFolder}/${Subject}/unprocessed/3T/T1w_MPR1/${Subject}_3T_SpinEchoFieldMap_RL.nii.gz
       #   ${StudyFolder}/${Subject}/unprocessed/3T/T1w_MPR1/${Subject}_3T_SpinEchoFieldMap_PA.nii.gz
-      SpinEchoPhaseEncodePositive="PA"
+      SpinEchoPhaseEncodePositive="${STUDY_DIR}/sub-${SUBJID}/fmap/sub-${SUBJID}_dir-PA_run-02_epi.nii.gz"
 
       # "Effective" Echo Spacing of *Spin Echo Field Maps*. Specified in seconds .
       # "NONE" if not used.
@@ -311,7 +311,7 @@ main()
       #
       # Example value for when using Spin Echo Field Maps from the HCP-YA
       #   0.000580002668012
-      SEEchoSpacing=$(jq -r '.EffectiveEchoSpacing' "${STUDY_DIR}/fmap/sub-${SUBJID}_SpinEchoFieldMap_dir-AP_epi.json")
+      SEEchoSpacing=$(jq -r '.EffectiveEchoSpacing' "${STUDY_DIR}/sub-${SUBJID}/fmap/sub-${SUBJID}_dir-AP_run-01_epi.json")
 
       # Spin Echo Unwarping Direction (according to the *voxel* axes)
       # {x,y} (FSL nomenclature), or alternatively, {i,j} (BIDS nomenclature for the voxel axes)
@@ -326,7 +326,7 @@ main()
       # Set to "NONE" if not using SEFMs
       #
       # Default file to use when using SEFMs
-      TopUpConfig="${HCPPIPEDIR_Config}/b02b0.cnf"
+      TopupConfig="${HCPPIPEDIR_Config}/b02b0.cnf"
 
       # ----------------------------------------------------------------------
       # Variables related to using General Electric specific Gradient Echo
@@ -350,8 +350,8 @@ main()
 
       # Templates
       # Determine which templates to use based on slice thickness of the T1/T2  images
-      T1wRES=$(jq -r '.SliceThickness' "${STUDY_DIR}/anat/sub-${SUBJID}_T1w.json")
-      T2wRES=$(jq -r '.SliceThickness' "${STUDY_DIR}/anat/sub-${SUBJID}_T2w.json")
+      T1wRES=$(jq -r '.SliceThickness' "${STUDY_DIR}/sub-${SUBJID}/anat/sub-${SUBJID}_T1w.json")
+      T2wRES=$(jq -r '.SliceThickness' "${STUDY_DIR}/sub-${SUBJID}/anat/sub-${SUBJID}_T2w.json")
 
       # Hires T1w MNI template
       T1wTemplate="${HCPPIPEDIR_Templates}/MNI152_T1_${T1wRES}mm.nii.gz"
@@ -398,8 +398,8 @@ main()
 
       # DICOM field (0019,1018) in s or "NONE" if not used
       # dcm2niix labels this as DwellTime
-      T1wSampleSpacing=$(jq -r '.DwellTime' "${STUDY_DIR}/anat/sub-${SUBJID}_T1w.json")
-      T2wSampleSpacing=$(jq -r '.DwellTime' "${STUDY_DIR}/anat/sub-${SUBJID}_T2w.json")
+      T1wSampleSpacing=$(jq -r '.DwellTime' "${STUDY_DIR}/sub-${SUBJID}/anat/sub-${SUBJID}_T1w.json")
+      T2wSampleSpacing=$(jq -r '.DwellTime' "${STUDY_DIR}/sub-${SUBJID}/anat/sub-${SUBJID}_T2w.json")
 
       # z appears to be the appropriate polarity for the 3D structurals collected on Siemens scanners
       UnwarpDir="k"
