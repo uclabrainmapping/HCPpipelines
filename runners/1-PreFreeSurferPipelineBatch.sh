@@ -130,8 +130,7 @@ main()
   #Subjlist="100307"                                    # Space delimited list of subject IDs
 
   # Set variable value that sets up environment
-  EnvironmentScript=SetUpUCLAPipeline.sh  # Pipeline environment script
-  #EnvironmentScript="/nafs/narr/jpierce/hcppipe/runners/SetUpUCLAPipeline.sh" # Pipeline environment script
+  EnvironmentScript="${HCPPIPEDIR}/runners/SetUpUCLAPipeline.sh" # Pipeline environment script
 
   # Report major script control variables to user
   echo "StudyFolder: ${STUDY_DIR}"
@@ -477,3 +476,4 @@ main()
 
 # Invoke the main function to get things started
 main "$@"
+ret=$?; times; exit "${ret}"
