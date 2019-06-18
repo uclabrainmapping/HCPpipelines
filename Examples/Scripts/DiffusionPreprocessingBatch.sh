@@ -41,7 +41,7 @@ get_batch_options "$@"
 
 StudyFolder="${HOME}/projects/Pipelines_ExampleData" #Location of Subject folders (named by subjectID)
 Subjlist="100307" #Space delimited list of subject IDs
-EnvironmentScript="${HOME}/projects/Pipelines/Examples/Scripts/SetUpHCPPipeline.sh" #Pipeline environment script
+EnvironmentScript="${HCPPIPEDIR}/runners/SetUpUCLAPipeline.sh" #Pipeline environment script
 
 if [ -n "${command_line_specified_study_folder}" ]; then
     StudyFolder="${command_line_specified_study_folder}"
@@ -56,7 +56,7 @@ fi
 #  environment: FSLDIR , FREESURFER_HOME , HCPPIPEDIR , CARET7DIR , PATH (for gradient_unwarp.py)
 
 #Set up pipeline environment variables and software
-source ${EnvironmentScript}
+source "${EnvironmentScript}"
 
 # Log the originating call
 echo "$@"
@@ -94,12 +94,12 @@ PRINTCOM=""
 
 ######################################### DO WORK ##########################################
 
-for Subject in $Subjlist ; do
-  echo $Subject
+for Subject in ${Subjlist} ; do
+  echo ${Subject}
 
   #Input Variables
-  SubjectID="$Subject" #Subject ID Name
-  RawDataDir="$StudyFolder/$SubjectID/unprocessed/3T/Diffusion" #Folder where unprocessed diffusion data are
+  SubjectID="sub-${Subject}" #Subject ID Name
+  RawDataDir="${StudyFolder}/${SubjectID}/dwi" #Folder where unprocessed diffusion data are
 
   # PosData is a list of files (separated by ‘@‘ symbol) having the same phase encoding (PE) direction 
   # and polarity. Similarly for NegData, which must have the opposite PE polarity of PosData.
@@ -125,8 +125,8 @@ for Subject in $Subjlist ; do
   # [This behavior can be changed through the hard-coded 'CombineDataFlag' variable in the 
   # DiffPreprocPipeline_PostEddy.sh script if necessary].
   
-  PosData="${RawDataDir}/${SubjectID}_3T_DWI_dir95_RL.nii.gz@${RawDataDir}/${SubjectID}_3T_DWI_dir96_RL.nii.gz@${RawDataDir}/${SubjectID}_3T_DWI_dir97_RL.nii.gz"
-  NegData="${RawDataDir}/${SubjectID}_3T_DWI_dir95_LR.nii.gz@${RawDataDir}/${SubjectID}_3T_DWI_dir96_LR.nii.gz@${RawDataDir}/${SubjectID}_3T_DWI_dir97_LR.nii.gz"
+  PosData="${RawDataDir}/${SubjectID}_acq-dir98AP_run-01_dwi.nii.gz@${RawDataDir}/${SubjectID}_acq-dir99AP_run-03_dwi.nii.gz"
+  NegData="${RawDataDir}/${SubjectID}_acq-dir99PA_run-02_dwi.nii.gz@${RawDataDir}/${SubjectID}_acq-dir99PA_run-04_dwi.nii.gz"
   
   # "Effective" Echo Spacing of dMRI image (specified in *msec* for the dMRI processing)
   # EchoSpacing = 1/(BWPPPE * ReconMatrixPE)
@@ -134,15 +134,25 @@ for Subject in $Subjlist ; do
   #   ReconMatrixPE = size of the reconstructed image in the PE dimension
   # In-plane acceleration, phase oversampling, phase resolution, phase field-of-view, and interpolation
   # all potentially need to be accounted for (which they are in Siemen's reported BWPPPE)
-  EchoSpacing=0.78
+  EchoSpacing="$(jq -r '.EffectiveEchoSpacing' \"${RawDataDir}/${SubjectID}_acq-dir98AP_run-01_dwi.json\")e3"
   
-  PEdir=1 #Use 1 for Left-Right Phase Encoding, 2 for Anterior-Posterior
+  PEdir=2 #Use 1 for Left-Right Phase Encoding, 2 for Anterior-Posterior
 
   # Gradient distortion correction
   # Set to NONE to skip gradient distortion correction
   # (These files are considered proprietary and therefore not provided as part of the HCP Pipelines -- contact Siemens to obtain)
   # Gdcoeffs="${HCPPIPEDIR_Config}/coeff_SC72C_Skyra.grad"
-  Gdcoeffs="NONE"
+  Gdcoeffs="${HCPPIPEDIR_Config}/coeff_AS82.grad"
+  if [[ -z "${GradientDistortionCoeffs}" ]]; then
+      echo "Missing gradient distortion coefficients. Manually populate file
+      or set GradientDistortionCoeffs=NONE to skip gradient distortion
+      correction.
+
+      This file contains proprietary Siemens data and should never be
+      committed to a public repo. Exiting."
+      exit 1
+  fi
+
 
   if [ -n "${command_line_specified_run_local}" ] ; then
       echo "About to run ${HCPPIPEDIR}/DiffusionPreprocessing/DiffPreprocPipeline.sh"
