@@ -41,7 +41,7 @@ get_batch_options "$@"
 
 StudyFolder="${HOME}/projects/Pipelines_ExampleData" #Location of Subject folders (named by subjectID)
 Subjlist="100307" #Space delimited list of subject IDs
-EnvironmentScript="${HOME}/projects/Pipelines/Examples/Scripts/SetUpHCPPipeline.sh" #Pipeline environment script
+EnvironmentScript="${HCPPIPEDIR}/runners/SetUpUCLAPipeline.sh" #Pipeline environment script
 
 if [ -n "${command_line_specified_study_folder}" ]; then
     StudyFolder="${command_line_specified_study_folder}"
@@ -94,12 +94,12 @@ PRINTCOM=""
 
 ######################################### DO WORK ##########################################
 
-for Subject in $Subjlist ; do
-  echo $Subject
+for Subject in ${Subjlist} ; do
+  echo ${Subject}
 
   #Input Variables
-  SubjectID="$Subject" #Subject ID Name
-  RawDataDir="$StudyFolder/$SubjectID/unprocessed/3T/Diffusion" #Folder where unprocessed diffusion data are
+  SubjectID="sub-${Subject}" #Subject ID Name
+  RawDataDir="${StudyFolder}/${SubjectID}/dwi" #Folder where unprocessed diffusion data are
 
   # PosData is a list of files (separated by ‘@‘ symbol) having the same phase encoding (PE) direction 
   # and polarity. Similarly for NegData, which must have the opposite PE polarity of PosData.
@@ -136,7 +136,7 @@ for Subject in $Subjlist ; do
   # all potentially need to be accounted for (which they are in Siemen's reported BWPPPE)
   EchoSpacing=0.78
   
-  PEdir=1 #Use 1 for Left-Right Phase Encoding, 2 for Anterior-Posterior
+  PEdir=2 #Use 1 for Left-Right Phase Encoding, 2 for Anterior-Posterior
 
   # Gradient distortion correction
   # Set to NONE to skip gradient distortion correction
