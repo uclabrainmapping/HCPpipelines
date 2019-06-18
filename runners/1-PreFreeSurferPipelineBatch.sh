@@ -287,7 +287,7 @@ main()
       # Example values for when using Spin Echo Field Maps from a Siemens machine:
       #   ${StudyFolder}/${Subject}/unprocessed/3T/T1w_MPR1/${Subject}_3T_SpinEchoFieldMap_LR.nii.z
       #   ${StudyFolder}/${Subject}/unprocessed/3T/T1w_MPR1/${Subject}_3T_SpinEchoFieldMap_AP.nii.gz
-      SpinEchoPhaseEncodeNegative="${STUDY_DIR}/sub-${SUBJID}/fmap/sub-${SUBJID}_dir-AP_run-01_epi.nii.gz"
+      SpinEchoPhaseEncodeNegative="${STUDY_DIR}/sub-${SUBJID}/fmap/sub-${SUBJID}_acq-func_dir-AP_run-01_epi.nii.gz"
 
       # The SpinEchoPhaseEncodePositive variable should be set to the
       # spin echo field map volume with positive phase encoding direction
@@ -298,7 +298,12 @@ main()
       # Example values for when using Spin Echo Field Maps from a Siemens machine:
       #   ${StudyFolder}/${Subject}/unprocessed/3T/T1w_MPR1/${Subject}_3T_SpinEchoFieldMap_RL.nii.gz
       #   ${StudyFolder}/${Subject}/unprocessed/3T/T1w_MPR1/${Subject}_3T_SpinEchoFieldMap_PA.nii.gz
-      SpinEchoPhaseEncodePositive="${STUDY_DIR}/sub-${SUBJID}/fmap/sub-${SUBJID}_dir-PA_run-02_epi.nii.gz"
+      SpinEchoPhaseEncodePositive="${STUDY_DIR}/sub-${SUBJID}/fmap/sub-${SUBJID}_acq-func_dir-PA_run-02_epi.nii.gz"
+
+      if [[ -z ${SpinEchoPhaseEncodeNegative} ]] || [[ -z ${SpinEchoPhaseEncodePositive} ]]; then 
+        echo "Exiting: Missing one or both SE Field Map(s)!"
+        exit 1
+      fi
 
       # "Effective" Echo Spacing of *Spin Echo Field Maps*. Specified in seconds .
       # "NONE" if not used.
@@ -310,7 +315,7 @@ main()
       #
       # Example value for when using Spin Echo Field Maps from the HCP-YA
       #   0.000580002668012
-      SEEchoSpacing=$(jq -r '.EffectiveEchoSpacing' "${STUDY_DIR}/sub-${SUBJID}/fmap/sub-${SUBJID}_dir-AP_run-01_epi.json")
+      SEEchoSpacing=$(jq -r '.EffectiveEchoSpacing' "${STUDY_DIR}/sub-${SUBJID}/fmap/sub-${SUBJID}_acq-func_dir-AP_run-01_epi.json")
 
       # Spin Echo Unwarping Direction (according to the *voxel* axes)
       # {x,y} (FSL nomenclature), or alternatively, {i,j} (BIDS nomenclature for the voxel axes)

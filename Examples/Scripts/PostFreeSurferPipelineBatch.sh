@@ -132,3 +132,4 @@ for Subject in $Subjlist ; do
    echo ". ${EnvironmentScript}"
 done
 
+ret=$?; times; exit "${ret}"
