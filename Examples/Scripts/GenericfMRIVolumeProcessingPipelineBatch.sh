@@ -41,7 +41,7 @@ get_batch_options "$@"
 
 StudyFolder="${HOME}/projects/Pipelines_ExampleData" #Location of Subject folders (named by subjectID)
 Subjlist="100307" #Space delimited list of subject IDs
-EnvironmentScript="${HOME}/projects/Pipelines/Examples/Scripts/SetUpHCPPipeline.sh" #Pipeline environment script
+EnvironmentScript="${HCPPIPEDIR}/runners/SetUpUCLAPipeline.sh" #Pipeline environment script
 
 if [ -n "${command_line_specified_study_folder}" ]; then
     StudyFolder="${command_line_specified_study_folder}"
@@ -132,24 +132,11 @@ SCRIPT_NAME=`basename ${0}`
 echo $SCRIPT_NAME
 
 TaskList=""
-TaskList+=" rfMRI_REST1_RL"  #Include space as first character
-TaskList+=" rfMRI_REST1_LR"
-TaskList+=" rfMRI_REST2_RL"
-TaskList+=" rfMRI_REST2_LR"
-TaskList+=" tfMRI_EMOTION_RL"
-TaskList+=" tfMRI_EMOTION_LR"
-TaskList+=" tfMRI_GAMBLING_RL"
-TaskList+=" tfMRI_GAMBLING_LR"
-TaskList+=" tfMRI_LANGUAGE_RL"
-TaskList+=" tfMRI_LANGUAGE_LR"
-TaskList+=" tfMRI_MOTOR_RL"
-TaskList+=" tfMRI_MOTOR_LR"
-TaskList+=" tfMRI_RELATIONAL_RL"
-TaskList+=" tfMRI_RELATIONAL_LR"
-TaskList+=" tfMRI_SOCIAL_RL"
-TaskList+=" tfMRI_SOCIAL_LR"
-TaskList+=" tfMRI_WM_RL"
-TaskList+=" tfMRI_WM_LR"
+TaskList+=" rest_acq-AP_run-01"  #Include space as first character
+TaskList+=" rest_acq-PA_run-02"
+TaskList+=" carit_acq-PA_run-01"
+TaskList+=" face_acq-AP_run-01"
+TaskList+=" face_acq-PA_run-02"
 
 # Start or launch pipeline processing for each subject
 for Subject in $Subjlist ; do
