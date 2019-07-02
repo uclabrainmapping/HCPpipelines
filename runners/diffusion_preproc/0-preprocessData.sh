@@ -13,4 +13,4 @@ echo "Starting Diffusion Pre-processing Pipeline at $(date)"
 SCRIPT=$(readlink -f $0)
 SCRIPT_DIR=$(dirname "${SCRIPT}")
 
-${SCRIPT_DIR}/1-DiffusionPreprocessingBatch.sh --StudyFolder="/nafs/narr/jpierce/newestout" --Subjlist="k001701"
+${SCRIPT_DIR}/1-DiffusionPreprocessingBatch.sh --StudyFolder="/nafs/narr/jpierce/newestout" --Subject="k001701"

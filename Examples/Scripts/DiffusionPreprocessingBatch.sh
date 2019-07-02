@@ -1,5 +1,7 @@
 #!/bin/bash 
 
+set -x
+
 get_batch_options() {
     local arguments=("$@")
 
@@ -125,8 +127,8 @@ for Subject in ${Subjlist} ; do
   # [This behavior can be changed through the hard-coded 'CombineDataFlag' variable in the 
   # DiffPreprocPipeline_PostEddy.sh script if necessary].
   
-  PosData="${RawDataDir}/${SubjectID}_acq-dir98AP_run-01_dwi.nii.gz@${RawDataDir}/${SubjectID}_acq-dir99AP_run-03_dwi.nii.gz"
-  NegData="${RawDataDir}/${SubjectID}_acq-dir99PA_run-02_dwi.nii.gz@${RawDataDir}/${SubjectID}_acq-dir99PA_run-04_dwi.nii.gz"
+  PosData="${RawDataDir}/${SubjectID}_acq-dir98PA_run-02_dwi.nii.gz@${RawDataDir}/${SubjectID}_acq-dir99PA_run-04_dwi.nii.gz"
+  NegData="${RawDataDir}/${SubjectID}_acq-dir98AP_run-01_dwi.nii.gz@${RawDataDir}/${SubjectID}_acq-dir99AP_run-03_dwi.nii.gz"
   
   # "Effective" Echo Spacing of dMRI image (specified in *msec* for the dMRI processing)
   # EchoSpacing = 1/(BWPPPE * ReconMatrixPE)
@@ -134,7 +136,7 @@ for Subject in ${Subjlist} ; do
   #   ReconMatrixPE = size of the reconstructed image in the PE dimension
   # In-plane acceleration, phase oversampling, phase resolution, phase field-of-view, and interpolation
   # all potentially need to be accounted for (which they are in Siemen's reported BWPPPE)
-  EchoSpacing="$(jq -r '.EffectiveEchoSpacing' \"${RawDataDir}/${SubjectID}_acq-dir98AP_run-01_dwi.json\")e3"
+  EchoSpacing=$(echo "$(jq -r '.EffectiveEchoSpacing' ${RawDataDir}/${SubjectID}_acq-dir98AP_run-01_dwi.json)/.001" | bc -l)
   
   PEdir=2 #Use 1 for Left-Right Phase Encoding, 2 for Anterior-Posterior
 
@@ -143,7 +145,7 @@ for Subject in ${Subjlist} ; do
   # (These files are considered proprietary and therefore not provided as part of the HCP Pipelines -- contact Siemens to obtain)
   # Gdcoeffs="${HCPPIPEDIR_Config}/coeff_SC72C_Skyra.grad"
   Gdcoeffs="${HCPPIPEDIR_Config}/coeff_AS82.grad"
-  if [[ -z "${GradientDistortionCoeffs}" ]]; then
+  if [[ -z "${Gdcoeffs}" ]]; then
       echo "Missing gradient distortion coefficients. Manually populate file
       or set GradientDistortionCoeffs=NONE to skip gradient distortion
       correction.
