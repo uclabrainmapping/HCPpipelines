@@ -1,4 +1,5 @@
 #!/bin/bash 
+set -ex
 
 get_batch_options() {
     local arguments=("$@")
@@ -19,7 +20,7 @@ get_batch_options() {
                 command_line_specified_study_folder=${argument#*=}
                 index=$(( index + 1 ))
                 ;;
-            --Subject=*)
+            --Subjlist=*)
                 command_line_specified_subj=${argument#*=}
                 index=$(( index + 1 ))
                 ;;
@@ -146,14 +147,14 @@ for Subject in $Subjlist ; do
   for fMRIName in $TaskList ; do
     echo "  ${SCRIPT_NAME}: Processing Scan: ${fMRIName}"
 	  
-	TaskName=`echo ${fMRIName} | sed 's/_[APLR]\+$//'`
+        TaskName=$(echo ${fMRIName} | cut -d_ -f1)
 	echo "  ${SCRIPT_NAME}: TaskName: ${TaskName}"
 
 	len=${#fMRIName}
 	echo "  ${SCRIPT_NAME}: len: $len"
 	start=$(( len - 2 ))
 		
-	PhaseEncodingDir=${fMRIName:start:2}
+        PhaseEncodingDir="$(echo "${fMRIName}" | grep -oE '(AP|PA|RL|LR)')"
 	echo "  ${SCRIPT_NAME}: PhaseEncodingDir: ${PhaseEncodingDir}"
 		
 	case ${PhaseEncodingDir} in
@@ -176,11 +177,11 @@ for Subject in $Subjlist ; do
 	
 	echo "  ${SCRIPT_NAME}: UnwarpDir: ${UnwarpDir}"
 		
-    fMRITimeSeries="${StudyFolder}/${Subject}/unprocessed/3T/${fMRIName}/${Subject}_3T_${fMRIName}.nii.gz"
+    fMRITimeSeries="${StudyFolder}/sub-${Subject}/func/sub-${Subject}_task-${fMRIName}_bold.nii.gz"
 
 	# A single band reference image (SBRef) is recommended if available
 	# Set to NONE if you want to use the first volume of the timeseries for motion correction
-    fMRISBRef="${StudyFolder}/${Subject}/unprocessed/3T/${fMRIName}/${Subject}_3T_${fMRIName}_SBRef.nii.gz"
+    fMRISBRef="${StudyFolder}/sub-${Subject}/func/sub-${Subject}_task-${fMRIName}_sbref.nii.gz"
 	
 	# "Effective" Echo Spacing of fMRI image (specified in *sec* for the fMRI processing)
 	# EchoSpacing = 1/(BWPPPE * ReconMatrixPE)
@@ -188,7 +189,7 @@ for Subject in $Subjlist ; do
 	#   ReconMatrixPE = size of the reconstructed image in the PE dimension
 	# In-plane acceleration, phase oversampling, phase resolution, phase field-of-view, and interpolation
 	# all potentially need to be accounted for (which they are in Siemen's reported BWPPPE)
-    EchoSpacing="0.00058" 
+        EchoSpacing="$(jq -r '.EffectiveEchoSpacing' "$(echo ${fMRITimeSeries} | sed 's/\.nii\.gz$/\.json/')"  )"
 
 	# Susceptibility distortion correction method (required for accurate processing)
 	# Values: TOPUP, SiemensFieldMap (same as FIELDMAP), GeneralElectricFieldMap
@@ -203,13 +204,12 @@ for Subject in $Subjlist ; do
 	# For the spin echo field map volume with a 'negative' phase encoding direction
 	# (LR in HCP-YA data; AP in 7T HCP-YA and HCP-D/A data)
 	# Set to NONE if using regular FIELDMAP
-    SpinEchoPhaseEncodeNegative="${StudyFolder}/${Subject}/unprocessed/3T/${fMRIName}/${Subject}_3T_SpinEchoFieldMap_LR.nii.gz"
+    SpinEchoPhaseEncodeNegative="${StudyFolder}/sub-${Subject}/fmap/sub-${Subject}_acq-func_dir-AP_run-01_epi.nii.gz"
 
 	# For the spin echo field map volume with a 'positive' phase encoding direction
 	# (RL in HCP-YA data; PA in 7T HCP-YA and HCP-D/A data)
 	# Set to NONE if using regular FIELDMAP
-    SpinEchoPhaseEncodePositive="${StudyFolder}/${Subject}/unprocessed/3T/${fMRIName}/${Subject}_3T_SpinEchoFieldMap_RL.nii.gz"
-
+    SpinEchoPhaseEncodePositive="${StudyFolder}/sub-${Subject}/fmap/sub-${Subject}_acq-func_dir-PA_run-02_epi.nii.gz"
 	# Topup configuration file (if using TOPUP)
 	# Set to NONE if using regular FIELDMAP
     TopUpConfig="${HCPPIPEDIR_Config}/b02b0.cnf"
@@ -232,13 +232,22 @@ for Subject in $Subjlist ; do
 	# Target final resolution of fMRI data
 	# 2mm is recommended for 3T HCP data, 1.6mm for 7T HCP data (i.e. should match acquisition resolution)
 	# Use 2.0 or 1.0 to avoid standard FSL templates
-    FinalFMRIResolution="2"
+    FinalFMRIResolution="$(jq '.SpacingBetweenSlices' "${StudyFolder}/sub-${Subject}/func/sub-${Subject}_task-${fMRIName}_bold.json")"
 
 	# Gradient distortion correction
 	# Set to NONE to skip gradient distortion correction
 	# (These files are considered proprietary and therefore not provided as part of the HCP Pipelines -- contact Siemens to obtain)
     # GradientDistortionCoeffs="${HCPPIPEDIR_Config}/coeff_SC72C_Skyra.grad"
-    GradientDistortionCoeffs="NONE"
+    GradientDistortionCoeffs="${HCPPIPEDIR_Config}/coeff_AS82.grad"
+      if [[ -z "${GradientDistortionCoeffs}" ]]; then
+        echo "Missing gradient distortion coefficients. Manually populate file
+        or set GradientDistortionCoeffs=NONE to skip gradient distortion
+        correction.
+
+        This file contains proprietary Siemens data and should never be
+        committed to a public repo. Exiting."
+        exit 1
+      fi
 
     # Type of motion correction
 	# Values: MCFLIRT (default), FLIRT
@@ -247,6 +256,7 @@ for Subject in $Subjlist ; do
 		
     if [ -n "${command_line_specified_run_local}" ] ; then
         echo "About to run ${HCPPIPEDIR}/fMRIVolume/GenericfMRIVolumeProcessingPipeline.sh"
+
         queuing_command=""
     else
         echo "About to use fsl_sub to queue or run ${HCPPIPEDIR}/fMRIVolume/GenericfMRIVolumeProcessingPipeline.sh"
