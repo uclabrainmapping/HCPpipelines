@@ -1,5 +1,7 @@
 #!/bin/bash 
 
+set -x
+
 # "This script must be SOURCED to correctly setup the environment prior to running any of the other HCP scripts contained here"
 
 export HCP_APP_DIR=/nafs/apps/HCPPipelines/64
@@ -20,7 +22,9 @@ export FSL_DIR="${FSLDIR}"
 
 # Set up FreeSurfer (if not already done so in the running environment)
 # Uncomment the following 2 lines (remove the leading #) and correct the FREESURFER_HOME setting for your setup
-export FREESURFER_HOME=${HCP_APP_DIR}/freesurfer/6.0.0-stable-pub
+export FREESURFER_HOME="${HCP_APP_DIR}/freesurfer/6.0.0-stable-pub"
+export SUBJECTS_DIR="${FREESURFER_HOME}/subjects"
+export FUNCTIONALS_DIR="${FREESURFER_HOME}/sessions"
 . ${FREESURFER_HOME}/SetUpFreeSurfer.sh > /dev/null 2>&1
 
 # Set up EPD
