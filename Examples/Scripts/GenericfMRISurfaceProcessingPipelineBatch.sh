@@ -1,5 +1,8 @@
 #!/bin/bash 
 
+set -x
+set -e
+
 get_batch_options() {
     local arguments=("$@")
 
@@ -75,25 +78,11 @@ PRINTCOM=""
 
 ######################################### DO WORK ##########################################
 
-Tasklist=""
-Tasklist="${Tasklist} rfMRI_REST1_RL"
-Tasklist="${Tasklist} rfMRI_REST1_LR"
-Tasklist="${Tasklist} rfMRI_REST2_RL"
-Tasklist="${Tasklist} rfMRI_REST2_LR"
-Tasklist="${Tasklist} tfMRI_EMOTION_RL"
-Tasklist="${Tasklist} tfMRI_EMOTION_LR"
-Tasklist="${Tasklist} tfMRI_GAMBLING_RL"
-Tasklist="${Tasklist} tfMRI_GAMBLING_LR"
-Tasklist="${Tasklist} tfMRI_LANGUAGE_RL"
-Tasklist="${Tasklist} tfMRI_LANGUAGE_LR"
-Tasklist="${Tasklist} tfMRI_MOTOR_RL"
-Tasklist="${Tasklist} tfMRI_MOTOR_LR"
-Tasklist="${Tasklist} tfMRI_RELATIONAL_RL"
-Tasklist="${Tasklist} tfMRI_RELATIONAL_LR"
-Tasklist="${Tasklist} tfMRI_SOCIAL_RL"
-Tasklist="${Tasklist} tfMRI_SOCIAL_LR"
-Tasklist="${Tasklist} tfMRI_WM_RL"
-Tasklist="${Tasklist} tfMRI_WM_LR"
+TaskList=""
+TaskList+=" rest_acq-AP_run-01"  #Include space as first character
+TaskList+=" rest_acq-PA_run-02"
+TaskList+=" carit_acq-PA_run-01"
+TaskList+=" face_acq-AP_run-01"
 
 for Subject in $Subjlist ; do
   echo $Subject
