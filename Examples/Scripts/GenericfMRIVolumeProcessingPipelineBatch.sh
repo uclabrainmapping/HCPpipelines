@@ -1,6 +1,9 @@
 #!/bin/bash 
 set -ex
 
+set -e
+set -x
+
 get_batch_options() {
     local arguments=("$@")
 
@@ -314,4 +317,4 @@ for Subject in $Subjlist ; do
   done
 done
 
-
+E_STATUS=$? ; Total time for batch script: $(times) ; exit $E_STATUS

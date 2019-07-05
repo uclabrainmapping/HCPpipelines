@@ -1,5 +1,8 @@
 #!/bin/bash 
 
+set -x
+set -e
+
 get_batch_options() {
     local arguments=("$@")
 
@@ -19,7 +22,7 @@ get_batch_options() {
                 command_line_specified_study_folder=${argument#*=}
                 index=$(( index + 1 ))
                 ;;
-            --Subject=*)
+            --Subjlist=*)
                 command_line_specified_subj=${argument#*=}
                 index=$(( index + 1 ))
                 ;;
@@ -41,7 +44,7 @@ get_batch_options "$@"
 
 StudyFolder="${HOME}/projects/Pipelines_ExampleData" #Location of Subject folders (named by subjectID)
 Subjlist="100307" #Space delimited list of subject IDs
-EnvironmentScript="${HOME}/projects/Pipelines/Examples/Scripts/SetUpHCPPipeline.sh" #Pipeline environment script
+EnvironmentScript="${HCPPIPEDIR}/runners/SetUpUCLAPipeline.sh" #Pipeline environment script
 
 if [ -n "${command_line_specified_study_folder}" ]; then
     StudyFolder="${command_line_specified_study_folder}"
@@ -75,30 +78,16 @@ PRINTCOM=""
 
 ######################################### DO WORK ##########################################
 
-Tasklist=""
-Tasklist="${Tasklist} rfMRI_REST1_RL"
-Tasklist="${Tasklist} rfMRI_REST1_LR"
-Tasklist="${Tasklist} rfMRI_REST2_RL"
-Tasklist="${Tasklist} rfMRI_REST2_LR"
-Tasklist="${Tasklist} tfMRI_EMOTION_RL"
-Tasklist="${Tasklist} tfMRI_EMOTION_LR"
-Tasklist="${Tasklist} tfMRI_GAMBLING_RL"
-Tasklist="${Tasklist} tfMRI_GAMBLING_LR"
-Tasklist="${Tasklist} tfMRI_LANGUAGE_RL"
-Tasklist="${Tasklist} tfMRI_LANGUAGE_LR"
-Tasklist="${Tasklist} tfMRI_MOTOR_RL"
-Tasklist="${Tasklist} tfMRI_MOTOR_LR"
-Tasklist="${Tasklist} tfMRI_RELATIONAL_RL"
-Tasklist="${Tasklist} tfMRI_RELATIONAL_LR"
-Tasklist="${Tasklist} tfMRI_SOCIAL_RL"
-Tasklist="${Tasklist} tfMRI_SOCIAL_LR"
-Tasklist="${Tasklist} tfMRI_WM_RL"
-Tasklist="${Tasklist} tfMRI_WM_LR"
+TaskList=""
+TaskList+=" rest_acq-AP_run-01"  #Include space as first character
+TaskList+=" rest_acq-PA_run-02"
+TaskList+=" carit_acq-PA_run-01"
+TaskList+=" face_acq-AP_run-01"
 
 for Subject in $Subjlist ; do
   echo $Subject
 
-  for fMRIName in $Tasklist ; do
+  for fMRIName in $TaskList ; do
     echo "  ${fMRIName}"
     LowResMesh="32" #Needs to match what is in PostFreeSurfer, 32 is on average 2mm spacing between the vertices on the midthickness
     FinalfMRIResolution="2" #Needs to match what is in fMRIVolume, i.e. 2mm for 3T HCP data and 1.6mm for 7T HCP data
