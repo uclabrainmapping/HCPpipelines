@@ -1,5 +1,8 @@
 #!/bin/bash 
 
+set -e
+set -x
+
 get_batch_options() {
     local arguments=("$@")
 
@@ -19,7 +22,7 @@ get_batch_options() {
                 command_line_specified_study_folder=${argument#*=}
                 index=$(( index + 1 ))
                 ;;
-            --Subject=*)
+            --Subjlist=*)
                 command_line_specified_subj=${argument#*=}
                 index=$(( index + 1 ))
                 ;;
@@ -304,4 +307,4 @@ for Subject in $Subjlist ; do
   done
 done
 
-
+E_STATUS=$? ; Total time for batch script: $(times) ; exit $E_STATUS
