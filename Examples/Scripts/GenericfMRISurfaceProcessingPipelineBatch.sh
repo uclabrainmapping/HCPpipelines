@@ -79,10 +79,10 @@ PRINTCOM=""
 ######################################### DO WORK ##########################################
 
 TaskList=""
-#TaskList+=" rest_acq-AP_run-01"  #Include space as first character
+TaskList+=" rest_acq-AP_run-01"  #Include space as first character
 TaskList+=" rest_acq-PA_run-02"
-#TaskList+=" carit_acq-PA_run-01"
-#TaskList+=" face_acq-AP_run-01"
+TaskList+=" carit_acq-PA_run-01"
+TaskList+=" face_acq-AP_run-01"
 
 for Subject in $Subjlist ; do
   echo $Subject
