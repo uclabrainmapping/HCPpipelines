@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e # If any command exits with non-zero value, this script exits
 
 #
 # # ReApplyFixPipeline.sh
@@ -72,6 +73,13 @@ PARAMETERs are [ ] = optional; < > = user supplied value
 
 EOF
 }
+
+# Establish defaults
+G_DEFAULT_REG_NAME="NONE"
+G_DEFAULT_LOW_RES_MESH=32
+G_DEFAULT_MATLAB_RUN_MODE=1		# Use interpreted MATLAB
+G_DEFAULT_MOTION_REGRESSION="FALSE"
+G_DEFAULT_DELETE_INTERMEDIATES="FALSE"
 
 # ------------------------------------------------------------------------------
 #  Get the command line options for this script.
@@ -282,6 +290,21 @@ have_hand_reclassification()
 	fi
 }
 
+function interpret_as_bool()
+{
+    case $(echo "$1" | tr '[:upper:]' '[:lower:]') in
+    (true | yes | 1)
+        echo 1
+        ;;
+    (false | no | none | 0)
+        echo 0
+        ;;
+    (*)
+        log_Err_Abort "error: '$1' is not valid for this argument, please use TRUE or FALSE"
+        ;;
+    esac
+}
+
 # ------------------------------------------------------------------------------
 #  Main processing of script.
 # ------------------------------------------------------------------------------
@@ -319,43 +342,18 @@ main()
 
 	local MotionRegression
 	if [ -z "${8}" ]; then
-		MotionRegression="${G_DEFAULT_MOTION_REGRESSION}"
+		MotionRegression=$(interpret_as_bool "${G_DEFAULT_MOTION_REGRESSION}")
 	else
-		MotionRegression="${8}"
+		MotionRegression=$(interpret_as_bool "${8}")
 	fi
 
 	local DeleteIntermediates
 	if [ -z "${9}" ]; then
-		DeleteIntermediates="${G_DEFAULT_DELETE_INTERMEDIATES}"
+		DeleteIntermediates=$(interpret_as_bool "${G_DEFAULT_DELETE_INTERMEDIATES}")
 	else
-		DeleteIntermediates="${9}"
+		DeleteIntermediates=$(interpret_as_bool "${9}")
 	fi
 
-	# Turn MotionRegression into an appropriate numeric value for fix_3_clean
-	case $(echo ${MotionRegression} | tr '[:upper:]' '[:lower:]') in
-        ( true | yes | 1)
-            MotionRegression=1
-            ;;
-        ( false | no | none | 0)
-            MotionRegression=0
-            ;;
-		*)
-			log_Err_Abort "motion regression setting must be TRUE or FALSE"
-			;;
-	esac
-
-	case $(echo ${DeleteIntermediates} | tr '[:upper:]' '[:lower:]') in
-        ( true | yes | 1)
-            DeleteIntermediates=1
-            ;;
-        ( false | no | none | 0)
-            DeleteIntermediates=0
-            ;;
-		*)
-			log_Err_Abort "clean intermediate setting must be TRUE or FALSE"
-			;;
-	esac
-	
 	# Log values retrieved from positional parameters
 	log_Msg "StudyFolder: ${StudyFolder}"
 	log_Msg "Subject: ${Subject}"
@@ -435,26 +433,37 @@ main()
 
 	# Note: fix_3_clean does NOT filter the volume (NIFTI) data -- it assumes
 	# that any desired filtering has already been done outside of fix.
-	# So here, we need to symlink to the hp-filtered volume data (after first
-	# generating it if necessary)
+	# So here, we need to symlink to the hp-filtered volume data.
+	# HOWEVER, if missing, only need to generate the hp-filtered volume data if DoVol=1.
+	# Otherwise (if DoVol=0), the only role of filtered_func_data in fix_3_clean is to determine the TR.
+	# In that case, we will just symlink the *non-filtered* data to filtered_func_data
+	# (as a hack for fix_3_clean to determine the TR without a time-consuming filtering step
+	# on the volume)
 
-    if [ ! `$FSLDIR/bin/imtest ${fMRIName}${hpStr}` = 1 ] ; then  # hp filtered volume file doesn't exist
-		if (( hp > 0 )); then
-			tr=`$FSLDIR/bin/fslval ${fMRIName} pixdim4`
-			log_Msg "tr: ${tr}"
-			log_Msg "processing FMRI file ${fMRIName} with highpass ${hp}"
-			hptr=$(echo "scale = 10; $hp / (2 * $tr)" | bc -l)
+	useNonFilteredAsFilteredFunc=0
+    if (( $($FSLDIR/bin/imtest "${fMRIName}${hpStr}") )); then
+		log_Warn "Using existing $($FSLDIR/bin/imglob -extension ${fMRIName}${hpStr}) (not re-filtering)"
+	else  # hp filtered volume file doesn't exist
+		if (( DoVol )); then  # need to actually refilter the volume data
+			if (( hp > 0 )); then
+				tr=`$FSLDIR/bin/fslval ${fMRIName} pixdim4`
+				log_Msg "tr: ${tr}"
+				log_Msg "processing FMRI file ${fMRIName} with highpass ${hp}"
+				hptr=$(echo "scale = 10; $hp / (2 * $tr)" | bc -l)
 
-			# Starting with FSL 5.0.7, 'fslmaths -bptf' no longer includes the temporal mean in its output.
-			# A work-around to this, which works with both the pre- and post-5.0.7 behavior is to compute
-			# the temporal mean, remove it, run -bptf, and then add the mean back in.
-			${FSLDIR}/bin/fslmaths ${fMRIName} -Tmean ${fMRIName}${hpStr}
-			highpass_cmd="${FSLDIR}/bin/fslmaths ${fMRIName} -sub ${fMRIName}${hpStr} -bptf ${hptr} -1 -add ${fMRIName}${hpStr} ${fMRIName}${hpStr}"
-			log_Msg "highpass_cmd: ${highpass_cmd}"
-			${highpass_cmd}
-		elif (( hp == 0 )); then
-			# Nothing in script currently detrends the volume if hp=0 is requested (which is the intended meaning of hp=0)
-			log_Err_Abort "hp = ${hp} not currently supported"
+				# Starting with FSL 5.0.7, 'fslmaths -bptf' no longer includes the temporal mean in its output.
+				# A work-around to this, which works with both the pre- and post-5.0.7 behavior is to compute
+				# the temporal mean, remove it, run -bptf, and then add the mean back in.
+				${FSLDIR}/bin/fslmaths ${fMRIName} -Tmean ${fMRIName}${hpStr}
+				highpass_cmd="${FSLDIR}/bin/fslmaths ${fMRIName} -sub ${fMRIName}${hpStr} -bptf ${hptr} -1 -add ${fMRIName}${hpStr} ${fMRIName}${hpStr}"
+				log_Msg "highpass_cmd: ${highpass_cmd}"
+				${highpass_cmd}
+			elif (( hp == 0 )); then
+				# Nothing in script currently detrends the volume if hp=0 is requested (which is the intended meaning of hp=0)
+				log_Err_Abort "hp = ${hp} not currently supported"
+			fi
+		else
+			useNonFilteredAsFilteredFunc=1
 		fi
 	fi
 
@@ -464,10 +473,14 @@ main()
 	
 	cd ${fMRIName}${hpStr}.ica
 
-	# At this point, the hp filtered volume file should definitely exist
-    $FSLDIR/bin/imln ../${fMRIName}${hpStr} filtered_func_data
+	# Create symlink for filtered_func_data (per comments above)
+	if (( useNonFilteredAsFilteredFunc )); then
+		$FSLDIR/bin/imln ../${fMRIName} filtered_func_data
+	else
+		$FSLDIR/bin/imln ../${fMRIName}${hpStr} filtered_func_data
+	fi
 	
-	# However, hp-filtering of the CIFTI (dtseries) occurs within fix_3_clean.
+	# However, hp-filtering of the *CIFTI* (dtseries) occurs within fix_3_clean.
 	# So here, we just create a symlink with the file name expected by
 	# fix_3_clean ("Atlas.dtseries.nii") to the non-filtered data.
 	if [ -f ../${fMRIName}_Atlas${RegString}.dtseries.nii ] ; then
@@ -634,13 +647,26 @@ main()
 
     # Remove the 'fake-NIFTI' file created in fix_3_clean for high-pass filtering of the CIFTI (if it exists)
 	$FSLDIR/bin/imrm ${fmrihp}.ica/Atlas
-	
-	cd ${DIR}
 
-    if [ ${DeleteIntermediates} = "1" ] ; then
-        $FSLDIR/bin/imrm ${StudyFolder}/${Subject}/MNINonLinear/Results/${fMRIName}/${fMRIName}${hpStr}
-        rm ${StudyFolder}/${Subject}/MNINonLinear/Results/${fMRIName}/${fMRIName}${hpStr}.ica/Atlas_hp_preclean.dtseries.nii
-    fi
+	# Always delete things with too-generic names
+	$FSLDIR/bin/imrm ${fmrihp}.ica/filtered_func_data
+	rm -f ${fmrihp}.ica/Atlas.dtseries.nii
+	
+	# Optional deletion of highpass intermediates
+    if [ "${DeleteIntermediates}" == "1" ] ; then
+		if (( hp > 0 )); then  # fix_3_clean only writes out the hp-filtered time series if hp > 0
+			$FSLDIR/bin/imrm ${fmri}_hp${hp}  # Explicitly use _hp${hp} here (rather than $hpStr as a safeguard against accidental deletion of the non-hp-filtered timeseries)
+			rm -f ${fmrihp}.ica/Atlas_hp_preclean.dtseries.nii
+		fi
+	else
+		#even if we don't delete it, don't leave this file with a hard to interpret name 
+		if (( hp > 0 )); then
+			# 'OR' mv command with "true" to avoid returning an error code if file doesn't exist for some reason
+			mv -f ${fmrihp}.ica/Atlas_hp_preclean.dtseries.nii ${fmri}_Atlas_hp${hp}.dtseries.nii || true 
+		fi
+     fi
+
+	cd ${DIR}  # Return to directory where script was launched
 
 	log_Msg "Completed!"
 }
@@ -648,15 +674,6 @@ main()
 # ------------------------------------------------------------------------------
 #  "Global" processing - everything above here should be in a function
 # ------------------------------------------------------------------------------
-
-set -e # If any command exits with non-zero value, this script exits
-
-# Establish defaults
-G_DEFAULT_REG_NAME="NONE"
-G_DEFAULT_LOW_RES_MESH=32
-G_DEFAULT_MATLAB_RUN_MODE=1		# Use interpreted MATLAB
-G_DEFAULT_MOTION_REGRESSION="FALSE"
-G_DEFAULT_DELETE_INTERMEDIATES="FALSE"
 
 # Set global variables
 g_script_name=$(basename "${0}")
