@@ -3,14 +3,18 @@
 export STUDY_DIR="/nafs/narr/jpierce/out_r1"
 export SUBJECT_LIST="k001702"
 
-export HCPPIPEDEBUG=true
-
 SCRIPT=$(readlink -f $0)
 SCRIPT_DIR=$(dirname "${SCRIPT}")
 . "${SCRIPT_DIR}/SetUpUCLAPipeline.sh"
 
 # exit on any error
 set -Eeuo pipefail
+
+if [[ ${HCPPIPEDEBUG} == "true" ]]; then
+  set -x
+fi
+
+# TODO: add sanity checks on CLI inputs
 
 ## Example data conversion here:
 #export PATH="${HCP_APP_DIR}/dcm2niix/bin:${PATH}"
@@ -20,7 +24,7 @@ set -Eeuo pipefail
 
 echo 'Removing first 10 volumes from rest and carit data. 
 Unedited data saved to .nii.gz.uncut'
-cd ${STUDY_DIR} 
+cd "${STUDY_DIR}"
 for SUBJ in ${SUBJECT_LIST}; do
   BASE_WD="./sub-${SUBJ}/func"
   if [[ -f "${BASE_WD}/.truncated" ]]; then
@@ -36,16 +40,38 @@ for SUBJ in ${SUBJECT_LIST}; do
   fi
 done
 
-time /nafs/narr/jpierce/hcppipe/runners/1-PreFreeSurferPipelineBatch.sh --StudyFolder="${STUDY_DIR}" --Subjlist="$SUBJ"
-echo "Pre-FS Pipeline Batch script finished"
+for SUBJ in ${SUBJECT_LIST}; do
+  # order from:
+  # https://wiki.humanconnectome.org/display/PublicData/HCP+Users+FAQ#HCPUsersFAQ-10.Whatistheorderofpipelinesforresting-statedata?
+  
+  # i) PreFreeSurfer
+  "${SCRIPT_DIR}/1-PreFreeSurferPipelineBatch.sh" --StudyFolder="${STUDY_DIR}" --Subjlist="${SUBJ}"
+  echo "Pre-FS Pipeline finished"
+ 
+  # ii) FreeSurfer
+  "${SCRIPT_DIR}/2-FreeSurferPipelineBatch.sh" --StudyFolder="${STUDY_DIR}" --Subject="${SUBJ}"
+  echo "FS Pipeline Pipeline finished"
 
-time /nafs/narr/jpierce/hcppipe/runners/2-FreeSurferPipelineBatch.sh --StudyFolder="${STUDY_DIR}" --Subject="${SUBJ}"
-echo "FS Pipeline Batch script finished"
+  # iii) PostFreeSurfer (using MSMSulc)
+  "${SCRIPT_DIR}/3-PostFreeSurferPipelineBatch.sh" --StudyFolder="${STUDY_DIR}" --Subject="${SUBJ}"
+  echo "Post-FS Pipeline finished"
+  
+  # iv) fMRIVolume 
+  "${SCRIPT_DIR}/4-GenericfMRIVolumeProcessingPipelineBatch.sh" --StudyFolder="${STUDY_DIR}" --Subjlist="${SUBJ}"
+  echo "fMRI Volume Processing Pipeline finished."
 
-time /nafs/narr/jpierce/hcppipe/runners/3-PostFreeSurferPipelineBatch.sh --StudyFolder="${STUDY_DIR}" --Subject="${SUBJ}"
-echo "Post-FS Pipeline Batch script finished"
+  # v) fMRISurface
+  "${SCRIPT_DIR}/5-GenericfMRISurfaceProcessingPipelineBatch.sh" --StudyFolder="${STUDY_DIR}" --Subjlist="${SUBJ}"
+  echo "fMRI Surface Processing Pipeline finished."
+  
+  # vi) ICA+FIX
+  
+  # vii) MSMAll
+  
+  # viii) GroupDeDrift
 
-time "${SCRIPT_DIR}/fmri_vol_preproc/0-preprocessData.sh"
-echo "fMRI Volume Preprocessing finished."
+  # ix) DedriftAndResample (Apply MSMAll)
 
-#time ${SCRIPT_DIR}/fmri_vol_preproc/0-preprocessData.sh"
+  # x) *Global Noise Removal* (not available publicly yet)
+  
+  # xi) Resting state analysis

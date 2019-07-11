@@ -129,3 +129,4 @@ for Subject in $Subjlist ; do
    done
 done
 
+ret=$?; times; exit "${ret}"

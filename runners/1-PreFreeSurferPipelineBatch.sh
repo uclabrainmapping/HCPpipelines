@@ -481,4 +481,5 @@ main()
 
 # Invoke the main function to get things started
 main "$@"
+
 ret=$?; times; exit "${ret}"

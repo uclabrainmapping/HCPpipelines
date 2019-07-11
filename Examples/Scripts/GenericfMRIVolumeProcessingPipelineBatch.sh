@@ -317,4 +317,4 @@ for Subject in $Subjlist ; do
   done
 done
 
-E_STATUS=$? ; Total time for batch script: $(times) ; exit $E_STATUS
+ret=$?; times; exit "${ret}"
