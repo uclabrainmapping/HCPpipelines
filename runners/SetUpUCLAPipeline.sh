@@ -76,7 +76,7 @@ then
     exit 1
 fi
 #add the specified versions of some things to the front of $PATH, so we can stop using absolute paths everywhere
-export PATH="$CARET7DIR:$FSLDIR/bin:$PATH"
+export PATH="$CARET7DIR:$PATH"
 
 # Set up EPD
 export EPD_PYTHON_HOME="${HCP_APP_DIR}/epd-7.3-2-rh5"
