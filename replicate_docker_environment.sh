@@ -1,7 +1,7 @@
 #!/bin/bash
 # Installs a multi-fix capable HCP Pipeline on cerebrum
 #
-set -Eeuo pipefail # don't change, script assumes this will catch errors
+set -Eeuo pipefail # do not change, script assumes this will catch errors
 [[ -v _HCPDEBUG ]] && true # TODO
 
 . /etc/rc.d/init.d/functions
@@ -9,9 +9,9 @@ set -Eeuo pipefail # don't change, script assumes this will catch errors
 SRC_DIR="/home/jpierce/src/HCPPipelines"
 HCP_APP_DIR="/nafs/apps/HCPPipelines/64"
 EPD_DIR="${HCP_APP_DIR}/epd-7.3-2-rh5"
-MSM_DIR="${HCP_APP_DIR}/MSM_HOCR_v1"
+MSM_DIR="${HCP_APP_DIR}/MSM_HOCR_v3-github"
 FIX_DIR="${HCP_APP_DIR}/fix"
-export FSLDIR="${HCP_APP_DIR}/fsl-6.0.1"
+export FSLDIR="${HCP_APP_DIR}/fsl/6.0.1-hcp"
 export FREESURFER_HOME="${HCP_APP_DIR}/freesurfer-6.0.0"
 
 HCP_RUN_UTILS_URL='https://github.com/Washington-University/HCPpipelinesRunUtils/archive/v1.4.0.tar.gz'
@@ -24,7 +24,8 @@ EPD_URL='https://www.clear.rice.edu/comp140/downloads/epd/linux/epd-7.3-2-rh5-x8
 EPDSHA256='868df97df367d5e9b722051eb6b5642fe56fa4d92a30c411c7756d41c41a229e'
 FSL_URL='https://fsl.fmrib.ox.ac.uk/fsldownloads/fsl-6.0.1-centos7_64.tar.gz'
 FSLSHA256='7aebc8d717d6a4ecca365d7aa6a5886871d4fcd26f8758522d90e08ce31381be'
-MSMSHA256='1941f26262a9843c570d2320b8b18e14bb8781cfc22e784fb5a642b84f209b95 '
+#MSM_URL='https://github.com/ecr05/MSM_HOCR/archive/v3.0FSL.tar.gz'
+#MSMSHA256='be74b54283e97bd6f880ac39019333e63f4605da90d2dc7b93895f8a11698cac'
 MCR_URL='http://ssd.mathworks.com/supportfiles/MCR_Runtime/R2012b/MCR_R2012b_glnxa64_installer.zip'
 MCRSHA256='42e8bea39bc039d767257ab62469018003411de2e3e7fbfad88a75cb58f3a6e7'
 FIX_URL='http://www.fmrib.ox.ac.uk/~steve/ftp/fix.tar.gz'
@@ -97,9 +98,24 @@ echo "Running FSL post-install. It's not hanging, just thinking real hard."
 echo_success
 
 echo -n "Installing MSM with HOCR"
-curl -fLs https://github.com/ecr05/MSM_HOCR/releases/download/1.0/msm_centos | tee msm | sha256sum -c <$(echo ${MSMSHA256})
+#curl -fLs "${MSM_URL}" | tee msm3.tgz | sha256sum -c <$(echo ${MSMSHA256})
+git clone https://github.com/ecr05/MSM_HOCR.git
+cd MSM_HOCR
+. "${FSLDIR}/etc/fslconf/fsl.sh"
+export FSLCONFDIR="${FSLDIR}/config"
+export FSLDEVDIR="$(pwd)/build"
+export FSLMACHTYPE='linux_64-gcc4.8'
+mkdir -p "${FSLDEVDIR}" "${FSLDEVDIR}/extras" "${FSLDEVDIR}/extras/include" "${FSLDEVDIR}/extras/src"
+cp -r extras/ELC1.04/ELC "${FSLDEVDIR}/extras/include/"
+cp -r "${FSLDIR}/src/FastPDlib" "${FSLDEVDIR}/extras/src/"
+make -j8 -C src/newmesh install
+make -j8 -C src/DiscreteOpt install
+make -j8 -C "${FSLDEVDIR}/extras/src/FastPDlib" install
+make -j8 -C src/MSMRegLib install
+make -j8 -C src/MSM install
+
 mkdir -p ${MSM_DIR}
-cp msm ${MSM_DIR}/
+cp src/MSM/{surfconvert,msmapplywarp,estimate_metric_distortion,msm_metric_sim,msm,msmresample} ${MSM_DIR}/
 echo_success
 
 curl -fLs "${MCR_URL}" | tee mcr.zip | sha256sum -c <$(echo ${MCRSHA256})
@@ -108,4 +124,3 @@ curl -fLs "${FIX_URL}" | tee fix.tar.gz | sha256sum -c <$(echo ${FIXSHA256})
 mkdir 
 
 popd
-exit 0
