@@ -1,4 +1,6 @@
-
+if [[ ${HCPPIPEDEBUG} == "true" ]]; then
+  set -x
+fi
 
 #~ND~FORMAT~MARKDOWN~
 #~ND~START~

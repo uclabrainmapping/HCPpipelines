@@ -1,7 +1,8 @@
 #!/bin/bash 
 
-set -x
-set -e
+if [[ ${HCPPIPEDEBUG} == "true" ]]; then
+    set -x
+fi
 
 get_batch_options() {
     local arguments=("$@")

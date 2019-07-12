@@ -1,8 +1,4 @@
 #!/bin/bash 
-set -ex
-
-set -e
-set -x
 
 get_batch_options() {
     local arguments=("$@")
@@ -70,8 +66,7 @@ echo "$@"
     QUEUE="-q hcp_priority.q"
 #fi
 
-if [[ -n $HCPPIPEDEBUG ]]
-then
+if [[ ${HCPPIPEDEBUG} == "true" ]]; then
     set -x
 fi
 
