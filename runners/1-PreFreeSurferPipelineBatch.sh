@@ -441,7 +441,7 @@ main()
         queuing_command=""
       else
         echo "About to use fsl_sub to queue or run ${HCPPIPEDIR}/PreFreeSurfer/PreFreeSurferPipeline.sh"
-        queuing_command="${FSLDIR}/bin/fsl_sub"
+        queuing_command="${FSLDIR}/bin/fsl_sub -l ${LOG_DIR}"
       fi
 
       # Run (or submit to be run) the PreFreeSurferPipeline.sh script

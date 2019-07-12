@@ -97,7 +97,7 @@ for Subject in $Subjlist ; do
       queuing_command=""
   else
       echo "About to use fsl_sub to queue or run ${HCPPIPEDIR}/FreeSurfer/FreeSurferPipeline.sh"
-      queuing_command="${FSLDIR}/bin/fsl_sub ${QUEUE}"
+      queuing_command="${FSLDIR}/bin/fsl_sub -l ${LOG_DIR} ${QUEUE}"
   fi
 
   ${queuing_command} ${HCPPIPEDIR}/FreeSurfer/FreeSurferPipeline.sh \
