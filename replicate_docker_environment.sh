@@ -26,8 +26,8 @@ FSL_URL='https://fsl.fmrib.ox.ac.uk/fsldownloads/fsl-6.0.1-centos7_64.tar.gz'
 FSLSHA256='7aebc8d717d6a4ecca365d7aa6a5886871d4fcd26f8758522d90e08ce31381be'
 #MSM_URL='https://github.com/ecr05/MSM_HOCR/archive/v3.0FSL.tar.gz'
 #MSMSHA256='be74b54283e97bd6f880ac39019333e63f4605da90d2dc7b93895f8a11698cac'
-MCR_URL='http://ssd.mathworks.com/supportfiles/MCR_Runtime/R2012b/MCR_R2012b_glnxa64_installer.zip'
-MCRSHA256='42e8bea39bc039d767257ab62469018003411de2e3e7fbfad88a75cb58f3a6e7'
+MCR_URL='http://ssd.mathworks.com/supportfiles/downloads/R2017b/deployment_files/R2017b/installers/glnxa64/MCR_R2017b_glnxa64_installer.zip'
+MCRSHA256='a01619b30f8cfd34a9a9cefe8323a2ada22a65722fc13b823dae36086ddd259f'
 FIX_URL='http://www.fmrib.ox.ac.uk/~steve/ftp/fix.tar.gz'
 FIXSHA256='ac62d54e418dc208c3d9e321a02c1cbff6349ec09ff682481a24aeb3c4a9dabb'
 
@@ -119,8 +119,13 @@ cp src/MSM/{surfconvert,msmapplywarp,estimate_metric_distortion,msm_metric_sim,m
 echo_success
 
 curl -fLs "${MCR_URL}" | tee mcr.zip | sha256sum -c <$(echo ${MCRSHA256})
+mkdir mcr && cd "$_"
+unzip ../mcr.zip 
+./install -mode silent -agreetoLicense yes -destinationFolder /nafs/apps/HCPPipelines/64/MCR/R2017b/v93
 
 curl -fLs "${FIX_URL}" | tee fix.tar.gz | sha256sum -c <$(echo ${FIXSHA256})
-mkdir 
+tar xvzf fix.tar.gz -C "${FIX_DIR}"
+curl -fLs "https://raw.githubusercontent.com/uclabrainmapping/HCPpipelines/master/runners/fix-settings.sh" -o "${FIX_DIR}/settings.sh"
+
 
 popd
