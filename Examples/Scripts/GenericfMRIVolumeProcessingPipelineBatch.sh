@@ -187,7 +187,7 @@ for Subject in $Subjlist ; do
 	#   ReconMatrixPE = size of the reconstructed image in the PE dimension
 	# In-plane acceleration, phase oversampling, phase resolution, phase field-of-view, and interpolation
 	# all potentially need to be accounted for (which they are in Siemen's reported BWPPPE)
-        EchoSpacing="$(jq -r '.EffectiveEchoSpacing' "$(echo ${fMRITimeSeries} | sed 's/\.nii\.gz$/\.json/')"  )"
+        EchoSpacing="$(jq -r '.EffectiveEchoSpacing' "$(echo ${fMRITimeSeries} | sed 's/\.nii\.gz$/\.json/')")"
 
 	# Susceptibility distortion correction method (required for accurate processing)
 	# Values: TOPUP, SiemensFieldMap (same as FIELDMAP), GeneralElectricFieldMap
@@ -258,7 +258,7 @@ for Subject in $Subjlist ; do
         queuing_command=""
     else
         echo "About to use fsl_sub to queue or run ${HCPPIPEDIR}/fMRIVolume/GenericfMRIVolumeProcessingPipeline.sh"
-        queuing_command="${FSLDIR}/bin/fsl_sub ${LOG_DIR} ${QUEUE}"
+        queuing_command="${FSLDIR}/bin/fsl_sub -l ${LOG_DIR} ${QUEUE}"
     fi
 
     ${queuing_command} ${HCPPIPEDIR}/fMRIVolume/GenericfMRIVolumeProcessingPipeline.sh \
