@@ -1,6 +1,6 @@
 #!/bin/bash
 # TODO: Argument checks and usage statement
-export STUDY_DIR='/nafs/narr/jpierce/out'
+export STUDY_DIR='/nafs/narr/jpierce/nout'
 export SUBJECT_LIST='k001701'
 export LOG_DIR='/nafs/narr/jpierce/logs'
 
@@ -27,7 +27,7 @@ if [[ ${HCPPIPEDEBUG} == "true" ]]; then
   if [[ ${USE_VALGRIND} == "true" ]]; then 
     RUN_PROF="valgrind --tool=massif --pages-as-heap=yes"
     SHOW_PROF="echo -n Peak memory use: "; "grep mem_heap_B $(ls -t "${LOG_DIR}/massif.out.*" | head -n1) | sed -e 's/mem_heap_B=\(.*\)/\1/' | sort -g | tail -n 1"
-  else
+  fi
 fi
 
 # exit on any error
@@ -42,7 +42,7 @@ pushd "${LOG_DIR}"
 # Example data conversion here:
 export PATH="${HCP_APP_DIR}/dcm2niix/bin:${PATH}"
 echo "converting DICOMs into BIDS structured directory"
-${RUN_PROF} heudiconv -d '/ifs/faculty/narr/schizo/CONNECTOME/{subject}/PRISMA_FIT_MRC35343/*/*HCP*/*_*/*' -s "${SUBJECT_LIST}" -f /nafs/narr/jpierce/hcppipe/runners/cmrr_heuristic.py -b -o "${STUDY_DIR}"
+${RUN_PROF} heudiconv -d '/ifs/faculty/narr/schizo/CONNECTOME/{subject}/PRISMA_FIT_MRC35343/*/*HCP*/*_*/*' -s "${SUBJECT_LIST}" -f /nafs/narr/jpierce/hcppipe/runners/cmrr_heuristic.py -b -o "${STUDY_DIR}" -g all
 ${SHOW_PROF}
 
 # TODO: make number of volumes a configurable parameter
@@ -101,9 +101,16 @@ for SUBJ in ${SUBJECT_LIST}; do
   ${SHOW_PROF}
   
   # vi) ICA+FIX
-  #echo "${SCRIPT_DIR}
+  ${RUN_PROF} "${SCRIPT_DIR}/6-IcaFixProcessingBatch.sh" --StudyFolder="${STUDY_DIR}" --Subject="${SUBJ}"
+  echo "ICAFIX Pipeline finished."
+  ${SHOW_PROF}
   
-  # vii) MSMAll
+  # vii) PostFIX
+  ${RUN_PROF} "${SCRIPT_DIR}/7-PostFixBatch.sh" --StudyFolder="${STUDY_DIR}" --Subject="${SUBJ}"
+  echo "PostFIX Pipeline finished."
+  ${SHOW_PROF}
+
+  # MSMAll
   
   # viii) GroupDeDrift
 

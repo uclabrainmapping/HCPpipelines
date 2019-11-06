@@ -38,10 +38,10 @@ def infotodict(seqinfo):
 
     for idx, s in enumerate(seqinfo):
         #if (s.dim3 == 208) and (s.dim4 == 1) and ('T1w' in s.protocol_name):
-        if (s.protocol_name == 'T1w_MPR_vNav_4e') and ('NORM' in s.image_type):
+        if (s.protocol_name == 'T1w_MPR_vNav_4e') and ('NORM' in s.image_type) and not ('DERIVED' in s.image_type):
             info[t1] = [s.series_id]
         #if (s.dim3 == 208) and ('T2w' in s.protocol_name):
-        if (s.protocol_name == 'T2w_SPC_vNav') and ('NORM' in s.image_type):
+        if (s.protocol_name == 'T2w_SPC_vNav') and ('NORM' in s.image_type) and not ('DERIVED' in s.image_type):
             info[t2] = [s.series_id]
         if ('SpinEchoFieldMap' in s.protocol_name):
             if ( 'PCASL' in s.protocol_name):
