@@ -1,18 +1,22 @@
 #!/bin/echo This script should be sourced before calling a pipeline script, and should not be run directly:
 
 export HCP_APP_DIR=/nafs/apps/HCPPipelines/64
-export PATH="${HCP_APP_DIR}/../miniconda/bin:${HCP_APP_DIR}/util:${PATH}"
+export PATH="/ifshome/jpierce/anaconda3/bin:${HCP_APP_DIR}/../miniconda/bin:${HCP_APP_DIR}/util:${PATH}"
 
 # Set up specific environment variables for the HCP Pipeline
 export HCPPIPEDIR=/nafs/narr/jpierce/hcppipe
 export MSMBINDIR="${HCP_APP_DIR}/MSM_HOCR_v3-github"
-export MSMCONFIGDIR="${HCP_APP_DIR}/MSMConfig"
-# export MATLAB_COMPILER_RUNTIME=/usr/local/MATLAB_Runtime/v901
-#export MATLAB_COMPILER_RUNTIME=/export/matlab/MCR/R2016b/v91
-export MATLAB_COMPILER_RUNTIME="${HCP_APP_DIR}/MCR/R2017b/v93"
+export MSMCONFIGDIR="${HCPPIPEDIR}/MSMConfig"
+# this must be set to v91 for this version of the HCPpipelines. note that this
+# is different than the MCR used for FIX, which is configured in its own
+# settings file
+export MATLAB_COMPILER_RUNTIME="${HCP_APP_DIR}/MCR/R2016b/v91"
+export FSL_FIX_MCR="${HCP_APP_DIR}/MCR/R2017b/v93"
 export FSL_FIXDIR="${HCP_APP_DIR}/fix"
 # if a suitable version of wb_command is on your $PATH, CARET7DIR can be blank
 export CARET7DIR="${HCP_APP_DIR}/workbench/1.3.2/bin_rh_linux64"
+
+export FIX_R_DIR="/nafs/apps/R/3.4.3/64/gcc4.8.5"
 
 # Set up FSL (if not already done so in the running environment)
 # Uncomment the following 2 lines (remove the leading #) and correct the FSLDIR setting for your setup

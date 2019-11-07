@@ -237,7 +237,7 @@ get_options()
 	resamp_value=""
 	unset ol_nstd_value
 	extra_eddy_args=""
-    no_gpu=""
+        no_gpu="TRUE"
 	cuda_version=""
 	
 	# parse arguments

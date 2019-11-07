@@ -79,15 +79,15 @@ PRINTCOM=""
 
 # List of fMRI runs
 # If running on output from multi-run FIX, use ConcatName as value for fMRINames
-fMRINames="rfMRI_REST1_LR rfMRI_REST1_RL rfMRI_REST2_LR rfMRI_REST2_RL"
+fMRINames="rest_AP_PA-carit_PA-face_AP_PA"  
 
 HighPass="2000"
-ReUseHighPass="NO" #Use YES if running on output from multi-run FIX, otherwise use NO
+ReUseHighPass="YES" #Use YES if running on output from multi-run FIX, otherwise use NO
 
 DualScene=${HCPPIPEDIR}/ICAFIX/PostFixScenes/ICA_Classification_DualScreenTemplate.scene
 SingleScene=${HCPPIPEDIR}/ICAFIX/PostFixScenes/ICA_Classification_SingleScreenTemplate.scene
 
-MatlabMode="1" #Mode=0 compiled Matlab, Mode=1 interpreted Matlab, Mode=2 octave
+MatlabMode="0" #Mode=0 compiled Matlab, Mode=1 interpreted Matlab, Mode=2 octave
 
 for Subject in $Subjlist ; do
   for fMRIName in ${fMRINames} ; do
